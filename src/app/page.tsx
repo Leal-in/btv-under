@@ -1,196 +1,281 @@
 "use client";
 
-import React, { useState } from "react";
-import StarfieldBackground from "@/components/StarfieldBackground";
+import React, { useState, useEffect, useRef } from "react";
+import { Bell, Check } from "lucide-react";
 
-import AmbientSoundToggle from "@/components/AmbientSoundToggle";
-import confetti from "canvas-confetti";
-import { Wrench, Sparkles, Send, CheckCircle2, Heart, Radio, Mail } from "lucide-react";
+export default function BethlehemTVMaintenancePage() {
+  // Animated scroll progress: 0 = completely closed (only BETHLEHEM TV in screen), 1 = fully open
+  const [progress, setProgress] = useState(0);
+  const targetProgress = useRef(0);
 
-export default function Home() {
+  // Email notify state inside hero
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Smooth wheel & gesture physics to play opening animation without scrolling page down
+  useEffect(() => {
+    let animId: number;
+    let current = 0;
+
+    const tick = () => {
+      const diff = targetProgress.current - current;
+      if (Math.abs(diff) > 0.0002) {
+        // Natural fluid easing
+        current += diff * 0.14;
+        setProgress(current);
+      } else if (current !== targetProgress.current) {
+        current = targetProgress.current;
+        setProgress(current);
+      }
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+
+    // Capture wheel without scrolling page down
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      // Normalize delta across browsers
+      const delta = e.deltaMode === 1 ? e.deltaY * 28 : e.deltaY;
+      const sensitivity = 0.0016;
+      targetProgress.current = Math.min(
+        Math.max(targetProgress.current + delta * sensitivity, 0),
+        1
+      );
+    };
+
+    // Mobile Touch swipe support
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+      const currentY = e.touches[0].clientY;
+      const deltaY = touchStartY - currentY; // swipe up = open
+      touchStartY = currentY;
+      const touchSensitivity = 0.0035;
+      targetProgress.current = Math.min(
+        Math.max(targetProgress.current + deltaY * touchSensitivity, 0),
+        1
+      );
+    };
+
+    // Keyboard Arrow navigation
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") {
+        e.preventDefault();
+        targetProgress.current = Math.min(targetProgress.current + 0.35, 1);
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        targetProgress.current = Math.max(targetProgress.current - 0.35, 0);
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("keydown", handleKeyDown);
+      cancelAnimationFrame(animId);
+    };
+  }, []);
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
-    try {
-      confetti({
-        particleCount: 60,
-        spread: 60,
-        origin: { y: 0.7 },
-        colors: ["#F59E0B", "#FBBF24", "#6366F1", "#FFFFFF"],
-      });
-    } catch {
-      // ignore
+    if (!email.trim()) return;
+    setSubscribed(true);
+  };
+
+  // Door transforms: part open to -100% and +100%
+  const leftDoorTranslate = -progress * 100;
+  const rightDoorTranslate = progress * 100;
+
+  // Background visual scaling
+  const imageScale = 1.12 - progress * 0.12;
+
+  // Initial Center Wordmark transforms:
+  // Visible ONLY before and during scroll. As doors part, the words slide outward and fade out.
+  const brandOpacity = Math.max(0, 1 - progress * 1.8);
+  const bethlehemOffset = -progress * 130;
+  const tvOffset = progress * 130;
+
+  // Revealed content transforms:
+  // Emerges smoothly as doors open
+  const revealProgress = Math.min(Math.max((progress - 0.12) / 0.88, 0), 1);
+  const revealOpacity = revealProgress;
+  const revealTranslateY = (1 - revealProgress) * 22;
+
+  // Click closed curtain to open
+  const handleCurtainClick = () => {
+    if (progress < 0.4) {
+      targetProgress.current = 1;
     }
   };
 
   return (
-    <main className="relative min-h-screen flex flex-col justify-between overflow-x-hidden bg-[#050811] text-slate-100">
-      {/* Dynamic Starfield & Celestial Background */}
-      <StarfieldBackground />
+    <main
+      className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#0A0C0E] text-[#EDE7DC] font-sora select-none flex flex-col justify-between"
+      style={{ touchAction: "none" }}
+    >
 
-      {/* Radiant Golden Glow Orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-amber-500/10 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/3 w-[450px] h-[450px] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none" />
-
-      {/* Main Container */}
-      <div className="relative z-10 flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 pt-8 pb-12">
-
-        {/* Brand Header */}
-        <header className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-8 border-b border-white/10">
-          <div className="flex items-center gap-3.5">
-            {/* Bethlehem Star Emblem */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-yellow-300 rounded-2xl blur-sm opacity-60 group-hover:opacity-90 transition-opacity" />
-              <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-900 via-amber-950 to-slate-950 border border-amber-400/60 flex items-center justify-center shadow-lg">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="w-7 h-7 text-amber-300 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]"
-                  fill="currentColor"
-                >
-                  <path d="M12 1L13.8 8.2L21 9L15 13.5L17.5 21L12 16.5L6.5 21L9 13.5L3 9L10.2 8.2L12 1Z" />
-                  <circle cx="12" cy="11.5" r="1.5" fill="#FFFFFF" />
-                </svg>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-                  <span>BETHLEHEM</span>
-                  <span className="text-amber-400 font-black">TV</span>
-                </h1>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                  Devotional
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Spiritual Broadcast & Daily Reflections
-              </p>
-            </div>
-          </div>
-
-          {/* Under Maintenance Live Pill */}
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 backdrop-blur-md">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
-            </span>
-            <span className="text-xs font-semibold text-amber-300 tracking-wide flex items-center gap-1.5">
-              <Wrench className="w-3.5 h-3.5 text-amber-400" />
-              Under Maintenance
-            </span>
-          </div>
-        </header>
-
-        {/* Hero Section */}
-        <section className="text-center pt-10 sm:pt-14 pb-8">
-          {/* Subtle Tag */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/80 text-slate-300 text-xs font-medium tracking-wide mb-6 backdrop-blur-xl">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Scheduled Sanctuary System Upgrade</span>
-          </div>
-
-          {/* Maintenance Headline */}
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.2] max-w-3xl mx-auto">
-            We Are Currently{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 drop-shadow-[0_0_20px_rgba(245,158,11,0.35)]">
-              Under Maintenance
-            </span>
-          </h2>
-
-          {/* Description */}
-          <p className="mt-4 text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed font-light">
-            We are performing scheduled improvements to bring you an enriched devotional experience with daily morning reflections, live prayer streams, and uplifting media from Bethlehem TV.
-          </p>
-
-        </section>
-
-
-
-        {/* Notification Subscription / Quick Alert */}
-        <section className="my-6">
-          <div className="rounded-3xl p-6 sm:p-8 bg-slate-900/70 border border-slate-800 backdrop-blur-xl shadow-2xl text-center max-w-2xl mx-auto">
-            {submitted ? (
-              <div className="space-y-3 py-4">
-                <div className="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto border border-amber-500/30">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white">
-                  You Will Be Notified Once We Are Back Online!
-                </h3>
-                <p className="text-xs text-slate-400">
-                  May God bless your day with peace and joy.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex items-center justify-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-widest">
-                  <Mail className="w-4 h-4" />
-                  <span>Get Notified When Service Resumes</span>
-                </div>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Leave your email address to receive an instant alert when our devotional hub is fully restored.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto pt-2">
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address"
-                    className="flex-1 px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-700/80 text-slate-100 placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 whitespace-nowrap"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Notify Me</span>
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </section>
-
-        {/* Live Broadcast Alternate Notice */}
-        <section className="mt-4 text-center">
-          <div className="inline-flex flex-wrap items-center justify-center gap-3 px-5 py-2.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-xs text-slate-300">
-            <span className="flex items-center gap-1.5 text-red-400 font-semibold">
-              <Radio className="w-3.5 h-3.5" />
-              Live Television Stream is Active:
-            </span>
-            <a
-              href="https://www.youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-amber-400 hover:text-amber-300 underline font-medium"
-            >
-              Watch Bethlehem TV on YouTube →
-            </a>
-          </div>
-        </section>
+      {/* =========================================================================
+          1. BACKGROUND VISUAL (Revealed behind the doors)
+          ========================================================================= */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div
+          className="w-full h-full bg-cover bg-center transition-transform duration-75 ease-out"
+          style={{
+            backgroundImage: "url('/portal-bg.jpg')",
+            transform: `scale(${imageScale})`,
+          }}
+        />
+        {/* Subtle dark gradient treatment for high contrast */}
+        <div className="absolute inset-0 bg-[#0A0C0E]/60 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0C0E] via-[#0A0C0E]/30 to-[#0A0C0E]/80" />
       </div>
 
-      {/* Floating Ambient Prayer Soundscape Controls */}
-      <AmbientSoundToggle />
 
-      {/* Footer */}
-      <footer className="relative z-10 w-full border-t border-slate-900 bg-slate-950/80 backdrop-blur-xl py-6 px-4 text-center text-xs text-slate-500">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} Bethlehem TV Broadcasting Network. All rights reserved.</span>
-          <span className="flex items-center gap-1 text-slate-400">
-            <span>Rooted in Faith</span>
-            <Heart className="w-3 h-3 text-amber-500 fill-amber-500" />
-            <span>Serving Worldwide</span>
+      {/* =========================================================================
+          2. FIXED BRAND HEADER
+          ========================================================================= */}
+      <header className="relative z-30 flex items-center justify-between px-6 sm:px-12 py-5 border-b border-[rgba(237,231,220,0.08)] bg-[#0A0C0E]/40 backdrop-blur-md">
+        <div className="flex items-center gap-1.5">
+          <span className="font-syne font-bold text-sm sm:text-base tracking-tight text-[#EDE7DC]">
+            BETHLEHEM TV
           </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#E8913C] inline-block" />
+        </div>
+
+        <div className="text-[10px] sm:text-[11px] font-medium tracking-[0.16em] uppercase text-[#9EA5A8]">
+          {progress < 0.5 ? "OFFLINE" : "RELAUNCHING SOON"}
+        </div>
+      </header>
+
+
+      {/* =========================================================================
+          3. REVEALED CONTENT: "WE'RE PREPARING SOMETHING NEW"
+          Fades in and rises as user scrolls to open the doors
+          ========================================================================= */}
+      <div
+        className="relative z-20 my-auto flex flex-col items-center text-center px-6 sm:px-12 max-w-3xl mx-auto w-full transition-all duration-75 ease-out"
+        style={{
+          opacity: revealOpacity,
+          transform: `translateY(${revealTranslateY}px)`,
+          pointerEvents: revealOpacity > 0.4 ? "auto" : "none",
+        }}
+      >
+
+        {/* Main Headline */}
+        <h1 className="font-syne font-extrabold text-3xl sm:text-5xl md:text-5xl text-[#EDE7DC] tracking-tight leading-[1.12]">
+          WE&apos;RE PREPARING{" "}
+          <span className="text-[#E8913C]">SOMETHING NEW.</span>
+        </h1>
+
+        {/* Supporting description */}
+        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-[#9EA5A8] font-normal leading-relaxed max-w-xl mx-auto">
+          Our digital space is currently being renewed. We&apos;ll be back soon with something fresh for you.
+        </p>
+
+
+
+
+      </div>
+
+
+      {/* =========================================================================
+          4. FULL-SCREEN CURTAIN DOORS (SPLITS ON SCROLL)
+          ========================================================================= */}
+      {progress < 1 && (
+        <div
+          onClick={handleCurtainClick}
+          className={`absolute inset-0 z-40 overflow-hidden select-none transition-opacity duration-150 ${progress === 0 ? "cursor-pointer" : "pointer-events-none"
+            }`}
+          style={{ opacity: progress >= 0.99 ? 0 : 1 }}
+        >
+          {/* Left Door Panel */}
+          <div
+            className="absolute top-0 left-0 bottom-0 w-1/2 bg-[#0A0C0E] border-r border-[rgba(237,231,220,0.08)] transition-transform duration-75 ease-out"
+            style={{ transform: `translateX(${leftDoorTranslate}%)` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0A0C0E] via-[#0E1114] to-[#121519] opacity-98" />
+          </div>
+
+          {/* Right Door Panel */}
+          <div
+            className="absolute top-0 right-0 bottom-0 w-1/2 bg-[#0A0C0E] border-l border-[rgba(237,231,220,0.08)] transition-transform duration-75 ease-out"
+            style={{ transform: `translateX(${rightDoorTranslate}%)` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-l from-[#0A0C0E] via-[#0E1114] to-[#121519] opacity-98" />
+          </div>
+
+          {/* Center Seam Glow Line */}
+          <div
+            className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0.5 pointer-events-none transition-opacity duration-150"
+            style={{ opacity: Math.max(0, 1 - progress * 2.5) }}
+          >
+            <div className="w-full h-full bg-gradient-to-b from-transparent via-[#E8913C]/60 to-transparent animate-seam-glow" />
+          </div>
+
+          {/* Center Wordmark: ONLY BETHLEHEM | TV. in the screen before scrolling */}
+          {brandOpacity > 0.01 && (
+            <div
+              className="absolute inset-0 flex items-center justify-center px-4 transition-opacity duration-75 ease-out pointer-events-none"
+              style={{ opacity: brandOpacity }}
+            >
+              <div className="flex items-center justify-center gap-3 sm:gap-6">
+                {/* BETHLEHEM */}
+                <span
+                  className="font-syne font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-[#EDE7DC] tracking-[0.06em]"
+                  style={{ transform: `translateX(${bethlehemOffset}px)` }}
+                >
+                  BETHLEHEM
+                </span>
+
+                {/* Vertical Divider Line */}
+                <span
+                  className="w-px h-8 sm:h-12 md:h-14 bg-[#2E6B72]/70 inline-block transition-opacity duration-100"
+                  style={{ opacity: Math.max(0, 1 - progress * 3) }}
+                />
+
+                {/* TV. */}
+                <div
+                  className="flex items-center"
+                  style={{ transform: `translateX(${tvOffset}px)` }}
+                >
+                  <span className="font-syne font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-[#EDE7DC] tracking-[0.06em]">
+                    TV
+                  </span>
+                  <span className="font-syne font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-[#E8913C] ml-0.5">
+                    .
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+
+      {/* =========================================================================
+          5. FIXED FOOTER
+          ========================================================================= */}
+      <footer className="relative z-30 flex items-center justify-between px-6 sm:px-12 py-4 border-t border-[rgba(237,231,220,0.08)] text-[10.5px] sm:text-[11px] font-normal tracking-[0.08em] text-[#6C7378]">
+        <div className="flex items-center gap-1">
+          <span className="font-syne font-semibold text-[#EDE7DC]"></span>
+          <span className="text-[#E8913C]"></span>
+        </div>
+
+        <div>
+          © {new Date().getFullYear()} BETHLEHEM TV
         </div>
       </footer>
+
     </main>
   );
 }

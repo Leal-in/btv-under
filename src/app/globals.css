@@ -1,96 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #050811;
-  --foreground: #f8fafc;
+@layer base {
+  :root {
+    --ground: #0A0C0E;
+    --secondary-ground: #101317;
+    --primary-ink: #EDE7DC;
+    --secondary-ink: #9EA5A8;
+    --muted-ink: #6C7378;
+    --amber: #E8913C;
+    --teal: #2E6B72;
+    --hairline: rgba(237, 231, 220, 0.13);
+  }
+
+  html, body {
+    background-color: var(--ground);
+    color: var(--primary-ink);
+    font-family: var(--font-sora), sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  h1, h2, h3, .font-syne {
+    font-family: var(--font-syne), sans-serif;
+  }
+
+  .font-sora {
+    font-family: var(--font-sora), sans-serif;
+  }
 }
 
-body {
-  background: #050811;
-  color: #f8fafc;
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  overflow-x: hidden;
+/* Custom Editorial Easing Curves */
+.ease-portal {
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
+.ease-portal-smooth {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Subtle Hairline Utility */
+.border-hairline {
+  border-color: rgba(237, 231, 220, 0.13);
+}
+
+.bg-hairline {
+  background-color: rgba(237, 231, 220, 0.13);
+}
+
+/* Accents used ONLY for type, tiny dots, fine rules */
+.text-amber-accent {
+  color: #E8913C;
+}
+
+.bg-amber-accent {
+  background-color: #E8913C;
+}
+
+.text-teal-accent {
+  color: #2E6B72;
+}
+
+.bg-teal-accent {
+  background-color: #2E6B72;
+}
+
+.border-amber-accent {
+  border-color: #E8913C;
+}
+
+/* Micro Animations */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+
+@keyframes seam-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+
+.animate-seam-glow {
+  animation: seam-glow 2s ease-in-out infinite;
+}
+
+/* Custom Selection */
 ::selection {
-  background-color: rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
-}
-
-/* Custom glowing effects */
-.glow-gold {
-  box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.25);
-}
-
-.glow-gold-lg {
-  box-shadow: 0 0 60px -10px rgba(245, 158, 11, 0.35);
-}
-
-.glow-blue {
-  box-shadow: 0 0 40px -5px rgba(59, 130, 246, 0.25);
-}
-
-.text-gold-gradient {
-  background: linear-gradient(135deg, #FFFBEB 0%, #FDE68A 30%, #F59E0B 70%, #D97706 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.text-silver-gradient {
-  background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 50%, #94A3B8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.glass-panel {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-panel-gold {
-  background: rgba(26, 20, 10, 0.55);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-panel-hover:hover {
-  border-color: rgba(245, 158, 11, 0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px -10px rgba(245, 158, 11, 0.2);
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(0.5deg); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50% { opacity: 0.75; transform: scale(1.08); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 4s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 3s infinite;
+  background: rgba(232, 145, 60, 0.25);
+  color: #EDE7DC;
 }

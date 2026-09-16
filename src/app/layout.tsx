@@ -1,24 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Syne, Sora } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const syne = Syne({
   subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-syne",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sora = Sora({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sora",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Bethlehem TV — Devotional Portal | Launching Soon",
-  description: "A sanctuary for daily spiritual renewal. Daily Scripture reflections, live broadcast streams, intercessory prayer network, and Holy Land teachings from Bethlehem TV.",
-  keywords: ["Bethlehem TV", "Christian Devotional", "Daily Bread", "Bible Verse", "Prayer Request", "Live Christian TV", "Holy Land Teachings"],
+  title: "Bethlehem TV — Digital Space | Renewal Underway",
+  description: "A digital entrance for Bethlehem TV. Our digital space is currently being renewed. We're preparing something new.",
+  keywords: ["Bethlehem TV", "Christian Media", "Faith", "Broadcast", "Renewal"],
   openGraph: {
-    title: "Bethlehem TV — Devotional Portal | Launching Soon",
-    description: "Daily grace and heavenly inspiration. Our all-new devotional portal is launching soon.",
+    title: "Bethlehem TV — Digital Space",
+    description: "Our digital space is being renewed. We're preparing something new.",
     type: "website",
   },
 };
@@ -31,11 +35,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${syne.variable} ${sora.variable} h-full overflow-hidden antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-[#050811] text-slate-100 selection:bg-amber-500/30 selection:text-amber-200">
+      <body className="h-full w-full overflow-hidden bg-[#0A0C0E] text-[#EDE7DC] font-sora selection:bg-[#E8913C]/20 selection:text-[#EDE7DC]">
         {children}
       </body>
     </html>
   );
 }
+
